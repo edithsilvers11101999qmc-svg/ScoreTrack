@@ -1,0 +1,27 @@
+# Gradle / Android 构建产物
+.gradle/
+build/
+app/build/
+captures/
+*.apk
+*.aab
+*.ap_
+*.dex
+local.properties
+
+# 签名材料（绝不入库）
+keystore/
+*.jks
+*.keystore
+
+# IDE
+.idea/
+*.iml
+.DS_Store
+Thumbs.db
+
+# 运行期数据
+*.db
+*.db-wal
+*.db-shm
+app/schemas/*.db
