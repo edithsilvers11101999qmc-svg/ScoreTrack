@@ -19,6 +19,7 @@ import androidx.compose.material.icons.outlined.CloudUpload
 import androidx.compose.material.icons.outlined.Description
 import androidx.compose.material.icons.outlined.Groups
 import androidx.compose.material.icons.outlined.Info
+import androidx.compose.material.icons.outlined.Event
 import androidx.compose.material.icons.outlined.MenuBook
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material.icons.outlined.PictureAsPdf
@@ -43,6 +44,7 @@ fun SettingsScreen(
     onOpenStudents: () -> Unit,
     onOpenGoals: () -> Unit,
     onOpenSelection: () -> Unit,
+    onOpenCountdown: () -> Unit,
     onOpenPersonalization: () -> Unit,
     onOpenAiSettings: () -> Unit,
     onOpenReports: () -> Unit,
@@ -76,6 +78,11 @@ fun SettingsScreen(
                 "选科管理",
                 if (selection.isComplete) "当前：${selection.comboLabel}" else "尚未完成选科（3+1+2）",
             ) { onOpenSelection() }
+            SettingRow(
+                Icons.Outlined.Event,
+                "考试倒计时",
+                "添加考试、设置倒计时与主页主显示",
+            ) { onOpenCountdown() }
         }
         SectionCard(title = "自定义与主题", subtitle = "主题颜色、壁纸、主页模块") {
             SettingRow(

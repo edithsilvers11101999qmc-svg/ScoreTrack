@@ -1,6 +1,6 @@
 # ScoreTrack 数据库结构说明
 
-Room 持久化，数据库文件 `scoretrack.db`，当前 `version = 4`（V4.1.0 起；V4.0.0 为 version 3，V3 为 version 2，V2 为 version 1），`exportSchema = true`（schema 导出到 `app/schemas/`，便于生成与校验迁移）。V3 新增 4 张个性化相关表（见第 4 节），V4 新增 `subject_selections`（见第 5 节），V4.1.0 为 `goal_cards` 增加 `logoPath` 列（`MIGRATION_3_4`）。
+Room 持久化，数据库文件 `scoretrack.db`，当前 `version = 5`（V4.2.0 起；V4.1.0 为 version 4，V4.0.0 为 version 3，V3 为 version 2，V2 为 version 1），`exportSchema = true`（schema 导出到 `app/schemas/`，便于生成与校验迁移）。V3 新增 4 张个性化相关表（见第 4 节），V4 新增 `subject_selections`（见第 5 节），V4.1.0 为 `goal_cards` 增加 `logoPath` 列（`MIGRATION_3_4`），V4.2.0 新增 `countdown_exams`（见第 6 节，`MIGRATION_4_5`）。
 定义文件：`app/src/main/java/com/scoretrack/data/db/Entities.kt`、`Daos.kt`、`ScoreTrackDatabase.kt`。
 
 ## 1. 实体一览
@@ -178,3 +178,25 @@ exams.sourceDocumentId ── 1 source_documents（可为 NULL）
 - 禁止 `fallbackToDestructiveMigration()`；后续版本提升 version 并注册新迁移。
 - 新增科目走数据（`subjects` 表），不改表结构。
 - 备份文件 `format=scoretrack-backup`、`version=5`（兼容读取 v1–v4；`selections`、`logoBase64` 缺省为空），恢复前校验格式与版本。
+
+## 6. V4.2 新增表（version 5）
+
+### countdown_exams（自定义考试倒计时）
+
+全局表，不绑定学生；主页卡片与「考试倒计时」管理页使用。
+
+| 列 | 类型 | 说明 |
+| --- | --- | --- |
+| id | TEXT | 主键，UUID，创建后不变 |
+| name | TEXT | 考试名称（必填） |
+| examDateEpochDay | INTEGER | 考试日期，`LocalDate.toEpochDay()`，与时区无关地表示「哪一天」（建索引 `index_countdown_exams_examDateEpochDay`） |
+| timeMinutes | INTEGER? | 可选的当天分钟数（0..1439），NULL 表示未设置具体时间 |
+| note | TEXT | 备注，可为空串 |
+| isVisible | INTEGER | 是否在主页显示 |
+| isPrimary | INTEGER | 是否为主页主显示考试；Repository 保证同一时刻最多一条为 1 |
+| createdAt | INTEGER | 创建时间（毫秒） |
+| updatedAt | INTEGER | 最后修改时间（毫秒） |
+
+迁移：`MIGRATION_4_5` 仅执行 `CREATE TABLE countdown_exams` 与 `CREATE INDEX index_countdown_exams_examDateEpochDay`，不改动既有表，禁止破坏性迁移。
+
+备份：`BackupFile.VERSION = 6`，新增 `countdowns: List<CountdownDto>`；旧备份无该字段时按空列表处理。

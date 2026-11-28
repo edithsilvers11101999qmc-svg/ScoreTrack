@@ -16,6 +16,8 @@ import com.scoretrack.data.upgrade.UpgradeManager
  *   既有表结构与数据保持不变，禁止破坏性重建。
  * - v3（V4.0.0）：新增 subject_selections（3+1+2 选科），并向 subjects 表补充生物/政治/历史，
  *   既有学生、考试、成绩、AI 报告与个性化设置全部保留。
+ * - v4（V4.1.0）：goal_cards 增加 logoPath（校徽）；
+ * - v5（V4.2.0）：新增 countdown_exams（自定义考试倒计时），既有数据不变；
  * - 升级前由 [UpgradeManager.prepareIfNeeded] 自动备份数据库与壁纸，迁移后校验数据量。
  */
 @Database(
@@ -32,8 +34,9 @@ import com.scoretrack.data.upgrade.UpgradeManager
         GoalCardEntity::class,
         DashboardCardEntity::class,
         SubjectSelectionEntity::class,
+        CountdownExamEntity::class,
     ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class ScoreTrackDatabase : RoomDatabase() {
@@ -48,6 +51,7 @@ abstract class ScoreTrackDatabase : RoomDatabase() {
     abstract fun goalDao(): GoalDao
     abstract fun dashboardDao(): DashboardDao
     abstract fun subjectSelectionDao(): SubjectSelectionDao
+    abstract fun countdownExamDao(): CountdownExamDao
 
     companion object {
 
@@ -165,7 +169,34 @@ abstract class ScoreTrackDatabase : RoomDatabase() {
             }
         }
 
-        val ALL_MIGRATIONS: Array<Migration> = arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+        /**
+         * v4 → v5（V4.2.0）：新增 countdown_exams（自定义考试倒计时）。
+         * 只建新表与新索引，不改动任何既有表与数据。
+         */
+        val MIGRATION_4_5: Migration = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS `countdown_exams` (" +
+                        "`id` TEXT NOT NULL, " +
+                        "`name` TEXT NOT NULL, " +
+                        "`examDateEpochDay` INTEGER NOT NULL, " +
+                        "`timeMinutes` INTEGER, " +
+                        "`note` TEXT NOT NULL, " +
+                        "`isVisible` INTEGER NOT NULL, " +
+                        "`isPrimary` INTEGER NOT NULL, " +
+                        "`createdAt` INTEGER NOT NULL, " +
+                        "`updatedAt` INTEGER NOT NULL, " +
+                        "PRIMARY KEY(`id`))"
+                )
+                db.execSQL(
+                    "CREATE INDEX IF NOT EXISTS `index_countdown_exams_examDateEpochDay` " +
+                        "ON `countdown_exams` (`examDateEpochDay`)"
+                )
+            }
+        }
+
+        val ALL_MIGRATIONS: Array<Migration> =
+            arrayOf(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
 
         fun get(context: Context): ScoreTrackDatabase = instance ?: synchronized(this) {
             instance ?: build(context.applicationContext).also { instance = it }

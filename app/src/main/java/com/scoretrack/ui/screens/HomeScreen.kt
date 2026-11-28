@@ -41,6 +41,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.scoretrack.core.ExamRecord
+import com.scoretrack.ui.components.CountdownSection
 import com.scoretrack.core.Subject
 import com.scoretrack.domain.selection.SubjectSelection
 import com.scoretrack.core.formatDelta
@@ -67,6 +68,7 @@ fun HomeScreen(
     onOpenStudents: () -> Unit,
     onOpenGoals: () -> Unit,
     onOpenSelection: () -> Unit,
+    onOpenCountdown: () -> Unit,
 ) {
     val students by vm.students.collectAsState()
     val active by vm.activeStudent.collectAsState()
@@ -76,6 +78,8 @@ fun HomeScreen(
     val wallpaper by vm.wallpaper.collectAsState()
     val dashboard by vm.dashboard.collectAsState()
     val selection by vm.selection.collectAsState()
+    val countdowns by vm.countdowns.collectAsState()
+    val now = com.scoretrack.ui.components.rememberNow()
 
     var showAddDialog by remember { mutableStateOf(false) }
     var showSwitch by remember { mutableStateOf(false) }
@@ -180,6 +184,15 @@ fun HomeScreen(
                         Text("AI 成绩分析")
                     }
                 }
+            }
+
+            // 考试倒计时固定显示在大学目标卡之上（不受主页模块排序影响）
+            item {
+                CountdownSection(
+                    exams = countdowns,
+                    now = now,
+                    onOpen = onOpenCountdown,
+                )
             }
 
             val visibleGoals = goals.filter { it.visible }

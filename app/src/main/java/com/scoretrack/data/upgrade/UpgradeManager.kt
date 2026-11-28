@@ -19,7 +19,7 @@ import org.json.JSONObject
  */
 object UpgradeManager {
 
-    const val CURRENT_DB_VERSION = 4
+    const val CURRENT_DB_VERSION = 5
     const val SETTING_LAST_RESULT = "upgrade.last_result"
     const val SETTING_PENDING_NOTICE = "upgrade.pending_notice"
     private const val BACKUP_ROOT = "upgrade_backups"
@@ -128,6 +128,7 @@ object UpgradeManager {
         "ai_reports" to query("SELECT COUNT(*) FROM ai_reports"),
         "goal_cards" to runCatching { query("SELECT COUNT(*) FROM goal_cards") }.getOrDefault(0),
         "subject_selections" to runCatching { query("SELECT COUNT(*) FROM subject_selections") }.getOrDefault(0),
+        "countdown_exams" to runCatching { query("SELECT COUNT(*) FROM countdown_exams") }.getOrDefault(0),
     )
 
     private fun copyIfExists(from: File, to: File) {

@@ -216,3 +216,23 @@ data class SubjectSelectionEntity(
     val secondSubject2: String? = null,
     val updatedAt: Long = 0L,
 )
+
+/**
+ * 自定义考试倒计时（V4.2 新增，与具体学生无关，属于全局提醒）。
+ *
+ * - examDateEpochDay：考试日期，存 [java.time.LocalDate.toEpochDay]，与时区无关地表示「哪一天」；
+ * - timeMinutes：可选的当天分钟数（0..1439），NULL 表示未设置具体时间；
+ * - isPrimary：主页主显示考试；Repository 负责保证同一时刻最多一条为 true。
+ */
+@Entity(tableName = "countdown_exams", indices = [Index("examDateEpochDay")])
+data class CountdownExamEntity(
+    @PrimaryKey val id: String,
+    val name: String,
+    val examDateEpochDay: Long,
+    val timeMinutes: Int? = null,
+    val note: String = "",
+    val isVisible: Boolean = true,
+    val isPrimary: Boolean = false,
+    val createdAt: Long = 0L,
+    val updatedAt: Long = 0L,
+)

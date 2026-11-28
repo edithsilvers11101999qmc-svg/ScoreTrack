@@ -11,6 +11,7 @@ import com.scoretrack.data.repo.DocumentRepository
 import com.scoretrack.data.repo.ExamRepository
 import com.scoretrack.data.goal.DashboardRepository
 import com.scoretrack.data.goal.GoalLogoStore
+import com.scoretrack.data.countdown.CountdownRepository
 import com.scoretrack.data.goal.GoalRepository
 import com.scoretrack.data.repo.StudentRepository
 import com.scoretrack.data.repo.SubjectSelectionRepository
@@ -65,6 +66,7 @@ class AppContainer(context: Context) {
     val themeRepository = ThemeRepository(database.themeDao())
     val wallpaperRepository = WallpaperRepository(appContext, database.wallpaperDao())
     val goalRepository = GoalRepository(database.goalDao())
+    val countdownRepository = CountdownRepository(database.countdownExamDao())
     val goalLogoStore = GoalLogoStore(appContext)
     val dashboardRepository = DashboardRepository(database.dashboardDao())
 

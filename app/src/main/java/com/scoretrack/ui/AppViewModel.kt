@@ -18,6 +18,7 @@ import com.scoretrack.domain.selection.SelectionRules
 import com.scoretrack.domain.selection.SubjectSelection
 import com.scoretrack.data.db.AiReportEntity
 import android.net.Uri
+import com.scoretrack.data.countdown.CountdownExam
 import com.scoretrack.data.goal.DashboardSection
 import com.scoretrack.data.goal.UniversityGoal
 import com.scoretrack.data.settings.SettingsSnapshot
@@ -171,6 +172,10 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
 
     val dashboard: StateFlow<List<DashboardSection>> = container.dashboardRepository.observe()
         .stateIn(viewModelScope, SharingStarted.Eagerly, DashboardSection.DEFAULTS)
+
+    /** 自定义考试倒计时（全局，不区分学生）。 */
+    val countdowns: StateFlow<List<CountdownExam>> = container.countdownRepository.observe()
+        .stateIn(viewModelScope, SharingStarted.Eagerly, emptyList())
 
     /** 当前学生的 3+1+2 选科（切换学生自动切换）。 */
     @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
@@ -375,6 +380,57 @@ class MainViewModel(private val container: AppContainer) : ViewModel() {
     fun deleteReport(id: String) = viewModelScope.launch {
         container.aiReportRepository.delete(id)
         _message.value = "AI 报告已删除"
+    }
+
+    // ---------------- 考试倒计时 ----------------
+
+    fun saveCountdown(
+        id: String? = null,
+        name: String,
+        date: java.time.LocalDate,
+        timeMinutes: Int?,
+        note: String,
+        visible: Boolean,
+        primary: Boolean,
+        onDone: (Boolean) -> Unit = {},
+    ) = viewModelScope.launch {
+        val trimmed = name.trim()
+        if (trimmed.isEmpty()) {
+            showMessage("请填写考试名称")
+            onDone(false)
+            return@launch
+        }
+        runCatching {
+            container.countdownRepository.save(
+                id = id,
+                name = trimmed,
+                date = date,
+                timeMinutes = timeMinutes,
+                note = note,
+                visible = visible,
+                primary = primary,
+            )
+        }.onSuccess {
+            showMessage(if (id == null) "考试已添加" else "考试已更新")
+            onDone(true)
+        }.onFailure {
+            showMessage("保存失败：${it.message ?: "未知错误"}")
+            onDone(false)
+        }
+    }
+
+    fun deleteCountdown(id: String) = viewModelScope.launch {
+        container.countdownRepository.delete(id)
+        showMessage("考试已删除")
+    }
+
+    fun setCountdownPrimary(id: String) = viewModelScope.launch {
+        container.countdownRepository.setPrimary(id)
+        showMessage("已设为主页主显示考试")
+    }
+
+    fun setCountdownVisible(id: String, visible: Boolean) = viewModelScope.launch {
+        container.countdownRepository.setVisible(id, visible)
     }
 }
 

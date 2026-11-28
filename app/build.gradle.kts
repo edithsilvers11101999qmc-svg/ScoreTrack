@@ -15,8 +15,8 @@ android {
         applicationId = "com.scoretrack"
         minSdk = 33
         targetSdk = 35
-        versionCode = 6
-        versionName = "4.1.1"
+        versionCode = 7
+        versionName = "4.2.0"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables { useSupportLibrary = true }
     }
@@ -120,4 +120,15 @@ dependencies {
 
 ksp {
     arg("room.schemaLocation", "$projectDir/schemas")
+}
+
+// Windows 中文路径下 JUnit 找不到测试类：显式指定 UTF-8 文件系统编码
+tasks.withType<Test>().configureEach {
+    systemProperty("file.encoding", "UTF-8")
+    jvmArgs(
+        "-Dfile.encoding=UTF-8",
+        "-Dsun.jnu.encoding=UTF-8",
+        "-Dsun.stdout.encoding=UTF-8",
+        "-Dsun.stderr.encoding=UTF-8",
+    )
 }

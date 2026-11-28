@@ -53,6 +53,7 @@ import com.scoretrack.ui.screens.PersonalizationScreen
 import com.scoretrack.ui.screens.ReportDetailScreen
 import com.scoretrack.ui.screens.ReportsScreen
 import com.scoretrack.ui.screens.SettingsScreen
+import com.scoretrack.ui.screens.CountdownScreen
 import com.scoretrack.ui.screens.SubjectSelectionScreen
 import com.scoretrack.ui.screens.StudentsScreen
 import com.scoretrack.ui.screens.WallpaperEditorScreen
@@ -78,6 +79,7 @@ object Routes {
     const val WALLPAPER_EDITOR = "wallpaper_editor"
     const val GOALS = "goals"
     const val SUBJECT_SELECTION = "subject_selection"
+    const val COUNTDOWN = "countdown"
 
     fun examEdit(examId: String?): String = if (examId == null) "$EXAM_EDIT?examId=" else "$EXAM_EDIT?examId=$examId"
     fun reportDetail(id: String): String = "$REPORT_DETAIL/$id"
@@ -175,6 +177,7 @@ private fun AppNavigation(vm: MainViewModel) {
                         onOpenStudents = { navController.navigate(Routes.STUDENTS) },
                         onOpenGoals = { navController.navigate(Routes.GOALS) },
                         onOpenSelection = { navController.navigate(Routes.SUBJECT_SELECTION) },
+                        onOpenCountdown = { navController.navigate(Routes.COUNTDOWN) },
                     )
                 }
                 composable(Routes.EXAMS) {
@@ -221,6 +224,7 @@ private fun AppNavigation(vm: MainViewModel) {
                         onOpenGoals = { navController.navigate(Routes.GOALS) },
                         onOpenPersonalization = { navController.navigate(Routes.PERSONALIZATION) },
                         onOpenSelection = { navController.navigate(Routes.SUBJECT_SELECTION) },
+                        onOpenCountdown = { navController.navigate(Routes.COUNTDOWN) },
                         onOpenAiSettings = { navController.navigate(Routes.AI_SETTINGS) },
                         onOpenReports = { navController.navigate(Routes.REPORTS) },
                         onOpenBackup = { navController.navigate(Routes.BACKUP) },
@@ -299,6 +303,12 @@ private fun AppNavigation(vm: MainViewModel) {
                 }
                 composable(Routes.SUBJECT_SELECTION) {
                     SubjectSelectionScreen(vm = vm, onBack = { navController.popBackStack() })
+                }
+                composable(Routes.COUNTDOWN) {
+                    CountdownScreen(
+                        vm = vm,
+                        onBack = { navController.popBackStack() },
+                    )
                 }
                 composable(Routes.GOALS) {
                     GoalsScreen(vm = vm, onBack = { navController.popBackStack() })

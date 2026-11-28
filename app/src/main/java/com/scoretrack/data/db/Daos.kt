@@ -301,3 +301,38 @@ interface SubjectSelectionDao {
     @Query("DELETE FROM subject_selections WHERE studentId = :studentId")
     suspend fun delete(studentId: String)
 }
+
+@Dao
+interface CountdownExamDao {
+
+    @Query(
+        "SELECT * FROM countdown_exams ORDER BY examDateEpochDay ASC, " +
+            "CASE WHEN timeMinutes IS NULL THEN 1 ELSE 0 END ASC, timeMinutes ASC, createdAt ASC"
+    )
+    fun observeAll(): Flow<List<CountdownExamEntity>>
+
+    @Query(
+        "SELECT * FROM countdown_exams ORDER BY examDateEpochDay ASC, " +
+            "CASE WHEN timeMinutes IS NULL THEN 1 ELSE 0 END ASC, timeMinutes ASC, createdAt ASC"
+    )
+    suspend fun all(): List<CountdownExamEntity>
+
+    @Query("SELECT * FROM countdown_exams WHERE id = :id LIMIT 1")
+    suspend fun find(id: String): CountdownExamEntity?
+
+    @Upsert
+    suspend fun upsert(entity: CountdownExamEntity)
+
+    @Query("DELETE FROM countdown_exams WHERE id = :id")
+    suspend fun delete(id: String)
+
+    /** 只允许一条主显示：先把其它记录置为 0，再把目标置为 1。 */
+    @Query("UPDATE countdown_exams SET isPrimary = CASE WHEN id = :id THEN 1 ELSE 0 END")
+    suspend fun setPrimary(id: String)
+
+    @Query("UPDATE countdown_exams SET isVisible = :visible, updatedAt = :updatedAt WHERE id = :id")
+    suspend fun setVisible(id: String, visible: Boolean, updatedAt: Long)
+
+    @Query("SELECT COUNT(*) FROM countdown_exams")
+    suspend fun count(): Int
+}

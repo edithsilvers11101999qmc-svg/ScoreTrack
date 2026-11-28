@@ -148,6 +148,19 @@ data class SelectionDto(
 )
 
 @Serializable
+data class CountdownDto(
+    val id: String,
+    val name: String,
+    val examDateEpochDay: Long,
+    val timeMinutes: Int? = null,
+    val note: String = "",
+    val isVisible: Boolean = true,
+    val isPrimary: Boolean = false,
+    val createdAt: Long = 0L,
+    val updatedAt: Long = 0L,
+)
+
+@Serializable
 data class BackupFile(
     val format: String = FORMAT,
     val version: Int = VERSION,
@@ -163,13 +176,15 @@ data class BackupFile(
     val theme: ThemeDto? = null,
     val wallpaper: WallpaperDto? = null,
     val goals: List<GoalDto> = emptyList(),
+    /** V6 新增：考试倒计时。旧备份没有该字段时按空列表处理。 */
+    val countdowns: List<CountdownDto> = emptyList(),
     val dashboard: List<DashboardDto> = emptyList(),
     // V4 新增（3+1+2 选科，旧备份缺省为空）
     val selections: List<SelectionDto> = emptyList(),
 ) {
     companion object {
         const val FORMAT = "scoretrack-backup"
-        const val VERSION = 5
+        const val VERSION = 6
         const val MIN_SUPPORTED = 1
     }
 }
@@ -250,6 +265,12 @@ class BackupService(private val db: ScoreTrackDatabase, private val filesDir: ja
                 )
             },
             dashboard = db.dashboardDao().list().map { DashboardDto(it.cardType, it.isEnabled, it.sortOrder) },
+            countdowns = db.countdownExamDao().all().map {
+                CountdownDto(
+                    it.id, it.name, it.examDateEpochDay, it.timeMinutes, it.note,
+                    it.isVisible, it.isPrimary, it.createdAt, it.updatedAt,
+                )
+            },
         )
         return json.encodeToString(backup)
     }
@@ -422,6 +443,26 @@ class BackupService(private val db: ScoreTrackDatabase, private val filesDir: ja
                         )
                     }
                 )
+            }
+            if (backup.countdowns.isNotEmpty()) {
+                if (mode == RestoreMode.REPLACE) {
+                    db.countdownExamDao().all().forEach { db.countdownExamDao().delete(it.id) }
+                }
+                backup.countdowns.forEach { c ->
+                    db.countdownExamDao().upsert(
+                        com.scoretrack.data.db.CountdownExamEntity(
+                            id = c.id,
+                            name = c.name,
+                            examDateEpochDay = c.examDateEpochDay,
+                            timeMinutes = c.timeMinutes,
+                            note = c.note,
+                            isVisible = c.isVisible,
+                            isPrimary = c.isPrimary,
+                            createdAt = c.createdAt,
+                            updatedAt = c.updatedAt,
+                        )
+                    )
+                }
             }
             if (backup.dashboard.isNotEmpty()) {
                 db.dashboardDao().upsertAll(

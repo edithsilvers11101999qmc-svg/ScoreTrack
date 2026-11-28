@@ -5,7 +5,7 @@
   <img alt="Kotlin" src="https://img.shields.io/badge/Kotlin-2.0.21-7F52FF?logo=kotlin&logoColor=white">
   <img alt="Compose" src="https://img.shields.io/badge/Jetpack%20Compose-Material%203-4285F4?logo=jetpackcompose&logoColor=white">
   <img alt="Room" src="https://img.shields.io/badge/Room-SQLite-1B5E20">
-  <img alt="Version" src="https://img.shields.io/badge/version-4.1.1-blue">
+  <img alt="Version" src="https://img.shields.io/badge/version-4.2.0-blue">
   <img alt="License" src="https://img.shields.io/badge/license-MIT-yellow">
 </p>
 
@@ -28,6 +28,7 @@
 | 原始成绩单留档 | 可选保存原图/PDF 并与考试记录关联，随时打开核对；删除文件不影响已保存成绩 |
 | 可视化分析 | 总分曲线（满分 750、显示分值、点击看详情、缩放、横屏）、六科独立曲线、原始分/得分率双视图、综合统计面板 |
 | AI 分析 | 任意 OpenAI 兼容接口（Base URL / Key / Model / 温度 / 最大 Token 均可配置）；报告含整体、六科逐科、优势薄弱、变化归因、学习建议；历史报告保留数据快照，可复制、导出 PDF |
+| 考试倒计时 | 主页顶部独立倒计时卡：名称/日期/时间/备注，按自然日计算剩余天数，考试当天显示剩余时分与「今天」，超过后自动进入「历史考试」且不出现负数；支持多场考试、主显示切换、显示开关 |
 | 选科 3+1+2 | 12 种合法组合、按学生隔离、非法组合不可保存、重启保留；改选不删历史成绩；录入与统计高亮选考科目；AI 分析围绕选考三科 |
 | 个性化 | 7 套主题色 + 自定义 HEX（深浅色各自派生 Material 3 配色）、主页壁纸（缩放/拖动/透明度）、大学目标卡（含校徽）、主页模块开关与排序 |
 | 备份导出 | JSON 完整备份/恢复（版本校验、合并去重）、ZIP（含原始成绩单）、CSV 成绩表、分析 PDF、AI 报告 PDF |
@@ -55,7 +56,9 @@
 2. 传到手机上点击安装（需在系统设置中允许「安装未知来源应用」）。
 3. 要求 **Android 13（API 33）及以上**；首次启动无需登录，直接创建学生档案。
 
-> 升级：从 v2 / v3 / v4 起同一签名，可直接覆盖安装，学生、考试、成绩、原始成绩单、AI 报告、主题、壁纸、目标卡、选科全部保留；首次启动自动执行 Room 迁移，并在迁移前把数据库备份到应用私有目录。
+当前版本包体：`ScoreTrackV4.2.0.apk`，93,031,237 字节，versionCode 7 / versionName 4.2.0，SHA-256 `4c6fdb2963b6d97c83ade71a24635c26fa29ecc6624b9253868a7144f01169e0`。
+
+> 升级：从 v2 / v3 / v4 / v4.1 起同一签名，可直接覆盖安装，学生、考试、成绩、原始成绩单、AI 报告、主题、壁纸、目标卡、选科全部保留；首次启动自动执行 Room 迁移，并在迁移前把数据库备份到应用私有目录。
 
 ## 从源码构建
 
@@ -114,12 +117,13 @@ app/src/main/java/com/scoretrack/
 
 ## 数据库
 
-Room 12 张表，`version = 4`，代码位于 `app/src/main/java/com/scoretrack/data/db/`：
+Room 13 张表，`version = 5`，代码位于 `app/src/main/java/com/scoretrack/data/db/`：
 
 - 基础：`students`、`subjects`（9 门）、`exams`、`scores`、`source_documents`、`ai_reports`、`app_settings`
 - v2：`theme_settings`、`wallpaper_settings`、`goal_cards`、`dashboard_cards`
 - v3：`subject_selections`
 - v4：`goal_cards.logoPath`（`MIGRATION_3_4`）
+- v5：`countdown_exams`（考试倒计时，`MIGRATION_4_5`）
 
 要点：
 
@@ -154,8 +158,8 @@ Room 12 张表，`version = 4`，代码位于 `app/src/main/java/com/scoretrack/
 
 ## 测试与验证
 
-- 单元测试：**41 项全部通过**（OCR 表格解析、统计与趋势、CSV 解析、颜色系统、目标进度、选科规则）
-- 真机回归：Android 15 / API 35 模拟器上完成 OCR、导入导出、AI、主题、壁纸、目标卡、选科、校徽全流程验证
+- 单元测试：**56 项全部通过**（OCR 表格解析、统计与趋势、CSV 解析、颜色系统、目标进度、选科规则、倒计时自然日/闰年/跨年/当天时分）
+- 真机回归：Android 15 / API 35 模拟器上完成 OCR、导入导出、AI、主题、壁纸、目标卡、选科、校徽、考试倒计时全流程验证
 - 升级验证：使用 **旧版本真实数据库** 做覆盖安装（`adb install -r`，从未卸载），逐项核对迁移前后的数据条数
 
 详细的测试条目、包体校验与已知限制见 [docs/VERIFICATION.md](docs/VERIFICATION.md)。
